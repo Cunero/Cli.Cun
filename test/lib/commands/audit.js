@@ -1832,7 +1832,7 @@ t.test('audit signatures', async t => {
     const { npm, joinedOutput } = await loadMockNpm(t, {
       prefixDir: installWithValidAttestations,
       mocks: {
-        pacote: t.mock('pacote', {
+        pacote: t.mockRequire('pacote', {
           sigstore: { verify: async () => true },
         }),
       },
@@ -1857,7 +1857,7 @@ t.test('audit signatures', async t => {
     const { npm, joinedOutput } = await loadMockNpm(t, {
       prefixDir: installWithMultipleValidAttestations,
       mocks: {
-        pacote: t.mock('pacote', {
+        pacote: t.mockRequire('pacote', {
           sigstore: { verify: async () => true },
         }),
       },
@@ -1887,7 +1887,7 @@ t.test('audit signatures', async t => {
     const { npm, joinedOutput } = await loadMockNpm(t, {
       prefixDir: installWithValidAttestations,
       mocks: {
-        pacote: t.mock('pacote', {
+        pacote: t.mockRequire('pacote', {
           sigstore: {
             verify: async () => {
               throw new Error(`artifact signature verification failed`)
@@ -1922,7 +1922,7 @@ t.test('audit signatures', async t => {
         json: true,
       },
       mocks: {
-        pacote: t.mock('pacote', {
+        pacote: t.mockRequire('pacote', {
           sigstore: {
             verify: async () => {
               throw new Error(`artifact signature verification failed`)
@@ -1951,7 +1951,7 @@ t.test('audit signatures', async t => {
     const { npm, joinedOutput } = await loadMockNpm(t, {
       prefixDir: installWithMultipleValidAttestations,
       mocks: {
-        pacote: t.mock('pacote', {
+        pacote: t.mockRequire('pacote', {
           sigstore: {
             verify: async () => {
               throw new Error(`artifact signature verification failed`)

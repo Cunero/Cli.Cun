@@ -21,7 +21,7 @@ const replace = (s) => {
 
 const tmock = (t, p, mocks = {}) => {
   const entries = Object.entries(mocks).map(([k, v]) => [replace(k), v])
-  return t.mock(replace(p), Object.fromEntries(entries))
+  return t.mockRequire(replace(p), Object.fromEntries(entries))
 }
 
 module.exports = tmock
