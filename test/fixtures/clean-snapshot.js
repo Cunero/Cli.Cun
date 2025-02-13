@@ -21,9 +21,10 @@ const cleanCwd = (path) => normalizePath(path)
   // repalce CWD, TESTDIR, and TAPDIR separately
   .replace(CWD, '{CWD}')
   .replace(TESTDIR, '{TESTDIR}')
-  .replace(/tap-testdir-[\w-.]+/gi, '{TAPDIR}')
+  .replace(/\.tap\/fixtures\/[\w-.]+/gi, '{TAPDIR}')
   // if everything ended up in line, reduce it all to CWD
   .replace(/\{CWD\}\/\{TESTDIR\}\/\{TAPDIR\}/g, '{CWD}')
+  .replace(/\{CWD\}\/\{TAPDIR\}/g, '{CWD}')
   // replace for platform differences in global nodemodules
   .replace(/lib\/node_modules/g, 'node_modules')
   .replace(/global\/lib/g, 'global')
