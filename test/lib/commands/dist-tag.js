@@ -72,7 +72,11 @@ const mockDist = async (t, { ...npmOpts } = {}) => {
       throw new Error('no package found')
     }
 
-    return getTag(url)
+    const result = await getTag(url)
+    // Return a response-like object for registry client
+    return {
+      json: async () => result,
+    }
   }
 
   const mock = await mockNpm(t, {

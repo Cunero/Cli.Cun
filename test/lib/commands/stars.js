@@ -9,7 +9,14 @@ const mockStars = async (t, { npmFetch = noop, exec = true, ...opts }) => {
     command: 'stars',
     exec,
     mocks: {
-      'npm-registry-fetch': Object.assign(noop, realFetch, { json: npmFetch }),
+      'npm-registry-fetch': Object.assign(async (...args) => {
+        // If npmFetch throws, let it throw immediately
+        const result = await npmFetch(...args)
+        // Return a response-like object for registry client
+        return {
+          json: async () => result,
+        }
+      }, realFetch, { json: npmFetch }),
       '{LIB}/utils/get-identity.js': async () => 'foo',
     },
     ...opts,
