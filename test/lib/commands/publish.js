@@ -1071,6 +1071,27 @@ t.test('oidc token exchange', t => {
     mockOidcTokenExchangeOptions: {
       statusCode: 500,
       idToken: 'github-jwt-id-token',
+      body: {
+        message: 'oidc token exchange failed',
+      },
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  t.test('token exchange 500 (with no body message) with fallback', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.npmjs.org',
+      idToken: 'github-jwt-id-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      statusCode: 500,
+      idToken: 'github-jwt-id-token',
     },
     publishOptions: {
       token: 'existing-fallback-token',
@@ -1138,7 +1159,9 @@ t.test('oidc token exchange', t => {
     },
     mockOidcTokenExchangeOptions: {
       idToken: 'github-jwt-id-token',
-      token: 'exchange-token',
+      body: {
+        token: 'exchange-token',
+      },
     },
     publishOptions: {
       token: 'exchange-token',
@@ -1152,7 +1175,9 @@ t.test('oidc token exchange', t => {
     },
     mockOidcTokenExchangeOptions: {
       idToken: 'gitlab-jwt-id-token',
-      token: 'exchange-token',
+      body: {
+        token: 'exchange-token',
+      },
     },
     publishOptions: {
       token: 'exchange-token',
@@ -1172,7 +1197,9 @@ t.test('oidc token exchange', t => {
     },
     mockOidcTokenExchangeOptions: {
       idToken: 'github-jwt-id-token',
-      token: 'exchange-token',
+      body: {
+        token: 'exchange-token',
+      },
     },
     publishOptions: {
       token: 'exchange-token',
@@ -1190,7 +1217,9 @@ t.test('oidc token exchange', t => {
     },
     mockOidcTokenExchangeOptions: {
       idToken: 'github-jwt-id-token',
-      token: 'exchange-token',
+      body: {
+        token: 'exchange-token',
+      },
     },
     publishOptions: {
       token: 'exchange-token',
@@ -1213,7 +1242,9 @@ t.test('oidc token exchange', t => {
     },
     mockOidcTokenExchangeOptions: {
       idToken: 'github-jwt-id-token',
-      token: 'exchange-token',
+      body: {
+        token: 'exchange-token',
+      },
     },
     publishOptions: {
       token: 'exchange-token',
