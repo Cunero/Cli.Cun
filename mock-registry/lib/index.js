@@ -359,7 +359,7 @@ class MockRegistry {
   }
 
   publish (name, {
-    packageJson, access, noGet, noPut, putCode, manifest, packuments,
+    packageJson, access, noGet, noPut, putCode, manifest, packuments, token,
   } = {}) {
     if (!noGet) {
       // this getPackage call is used to get the latest semver version before publish
@@ -373,7 +373,7 @@ class MockRegistry {
       }
     }
     if (!noPut) {
-      this.putPackage(name, { code: putCode, packageJson, access })
+      this.putPackage(name, { code: putCode, packageJson, access, token })
     }
   }
 
@@ -391,10 +391,14 @@ class MockRegistry {
     this.nock = nock
   }
 
-  putPackage (name, { code = 200, resp = {}, ...putPackagePayload }) {
-    this.nock.put(`/${npa(name).escapedName}`, body => {
+  putPackage (name, { code = 200, resp = {}, token, ...putPackagePayload }) {
+    let n = this.nock.put(`/${npa(name).escapedName}`, body => {
       return this.#tap.match(body, this.putPackagePayload({ name, ...putPackagePayload }))
-    }).reply(code, resp)
+    })
+    if (token) {
+      n = n.matchHeader('authorization', `Bearer ${token}`)
+    }
+    n.reply(code, resp)
   }
 
   putPackagePayload (opts) {
@@ -625,6 +629,13 @@ class MockRegistry {
         })
       }
     }
+  }
+
+  mockOidcTokenExchange ({ packageName, idToken, token, statusCode = 200 } = {}) {
+    const encodedPackageName = npa(packageName).escapedName
+    this.nock.post(this.fullPath(`/-/npm/v1/oidc/token/exchange/package/${encodedPackageName}`))
+      .matchHeader('authorization', `Bearer ${idToken}`)
+      .reply(statusCode, statusCode !== 500 ? { token } : { message: 'Internal Server Error' })
   }
 }
 

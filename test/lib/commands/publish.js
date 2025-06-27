@@ -5,6 +5,7 @@ const pacote = require('pacote')
 const Arborist = require('@npmcli/arborist')
 const path = require('node:path')
 const fs = require('node:fs')
+const { MockOidc } = require('../../fixtures/mock-oidc')
 
 const pkg = '@npmcli/test-package'
 const token = 'test-auth-token'
@@ -987,4 +988,240 @@ t.test('semver highest dist tag', async t => {
     registry.publish(pkg, { noGet: true, packuments })
     await npm.exec('publish', [])
   })
+})
+
+t.test('oidc token exchange', t => {
+  const oidcPublishTest = ({
+    oidcOptions = {},
+    packageName = '@npmcli/test-package',
+    config = {},
+    packageJson = {},
+    load = {},
+    mockGithubOidcOptions = null,
+    mockOidcTokenExchangeOptions = null,
+    publishOptions = {},
+  }) => {
+    return async (t) => {
+      const oidc = MockOidc.tnock(t, oidcOptions)
+      const { npm, registry } = await loadNpmWithRegistry(t, {
+        config,
+        prefixDir: {
+          'package.json': JSON.stringify({
+            name: packageName,
+            version: '1.0.0',
+            ...packageJson,
+          }, null, 2),
+        },
+        ...load,
+      })
+      if (mockGithubOidcOptions) {
+        oidc.mockGithubOidc(mockGithubOidcOptions)
+      }
+      if (mockOidcTokenExchangeOptions) {
+        registry.mockOidcTokenExchange({
+          packageName,
+          ...mockOidcTokenExchangeOptions,
+        })
+      }
+      registry.publish(packageName, publishOptions)
+      await npm.exec('publish', [])
+      oidc.reset()
+    }
+  }
+
+  // fallback failures
+
+  t.test('oidc token 500 with fallback', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.npmjs.org',
+      statusCode: 500,
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  t.test('oidc token invalid body with fallback', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.npmjs.org',
+      idToken: null,
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  t.test('token exchange 500 with fallback', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.npmjs.org',
+      idToken: 'github-jwt-id-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      statusCode: 500,
+      idToken: 'github-jwt-id-token',
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  t.test('token exchange invalid body with fallback', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.npmjs.org',
+      idToken: 'github-jwt-id-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      token: null,
+      idToken: 'github-jwt-id-token',
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  t.test('github + missing ACTIONS_ID_TOKEN_REQUEST_URL', oidcPublishTest({
+    oidcOptions: { github: true, ACTIONS_ID_TOKEN_REQUEST_URL: '' },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  t.test('gitlab + missing NPM_ID_TOKEN', oidcPublishTest({
+    oidcOptions: { gitlab: true, NPM_ID_TOKEN: '' },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  t.test('no ci', oidcPublishTest({
+    oidcOptions: { github: false, gitlab: false },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    publishOptions: {
+      token: 'existing-fallback-token',
+    },
+  }))
+
+  // default registry success
+
+  t.test('default registry success github', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.npmjs.org',
+      idToken: 'github-jwt-id-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      idToken: 'github-jwt-id-token',
+      token: 'exchange-token',
+    },
+    publishOptions: {
+      token: 'exchange-token',
+    },
+  }))
+
+  t.test('default registry success gitlab', oidcPublishTest({
+    oidcOptions: { gitlab: true, NPM_ID_TOKEN: 'gitlab-jwt-id-token' },
+    config: {
+      '//registry.npmjs.org/:_authToken': 'existing-fallback-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      idToken: 'gitlab-jwt-id-token',
+      token: 'exchange-token',
+    },
+    publishOptions: {
+      token: 'exchange-token',
+    },
+  }))
+
+  // custom registry success
+
+  t.test('custom registry (config) success github', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      registry: 'https://registry.zzz.org',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.zzz.org',
+      idToken: 'github-jwt-id-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      idToken: 'github-jwt-id-token',
+      token: 'exchange-token',
+    },
+    publishOptions: {
+      token: 'exchange-token',
+    },
+  }))
+
+  t.test('custom registry (scoped config) success github', oidcPublishTest({
+    oidcOptions: { github: true },
+    config: {
+      '@npmcli:registry': 'https://registry.zzz.org',
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.zzz.org',
+      idToken: 'github-jwt-id-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      idToken: 'github-jwt-id-token',
+      token: 'exchange-token',
+    },
+    publishOptions: {
+      token: 'exchange-token',
+    },
+    load: {
+      registry: 'https://registry.zzz.org',
+    },
+  }))
+
+  t.test('custom registry (publishConfig) success github', oidcPublishTest({
+    oidcOptions: { github: true },
+    packageJson: {
+      publishConfig: {
+        registry: 'https://registry.zzz.org',
+      },
+    },
+    mockGithubOidcOptions: {
+      audience: 'npm:registry.zzz.org',
+      idToken: 'github-jwt-id-token',
+    },
+    mockOidcTokenExchangeOptions: {
+      idToken: 'github-jwt-id-token',
+      token: 'exchange-token',
+    },
+    publishOptions: {
+      token: 'exchange-token',
+    },
+    load: {
+      registry: 'https://registry.zzz.org',
+    },
+  }))
+
+  t.end()
 })
