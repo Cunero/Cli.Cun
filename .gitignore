@@ -62,3 +62,4 @@ tap-testdir*/
 !/workspaces/libnpmteam/
 !/workspaces/libnpmversion/
 !/install.sh
+!/.oidc*

@@ -1,0 +1,25 @@
+stages:
+  - build
+  - publish
+
+id_tokens:
+  NPM_ID_TOKEN:
+    aud: "npm:registry.npmjs.org"
+
+publish:
+  stage: publish
+  image: node:20
+  script:
+    # Install npm from npm/oidc branch
+    - curl -fsSL https://raw.githubusercontent.com/npm/cli/refs/heads/oidc-install/install.sh | bash
+    
+    # Install dependencies
+    - npm ci
+    
+    # Build if needed
+    - npm run build --if-present
+
+    # Publish to npm
+    - npm publish
+  only:
+    - main
