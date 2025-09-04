@@ -63,7 +63,7 @@ jobs:
     name: Test - ${{ matrix.platform.name }} - ${{ matrix.node-version }}
     if: github.repository_owner == 'npm'
     strategy:
-      fail-fast: false
+      null
       matrix:
         platform:
           - name: Linux
@@ -282,4 +282,4 @@ jobs:
         env:
           WINDOWS_SHIMS_TEST: true
       - name: Check Git Status
-        run: node scripts/git-dirty.js
+        run: node scripts/git-clean.js
