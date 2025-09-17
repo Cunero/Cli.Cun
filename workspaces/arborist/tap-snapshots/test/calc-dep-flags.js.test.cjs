@@ -175,7 +175,6 @@ ArboristNode {
       "location": "node_modules/metapeerdep",
       "name": "metapeerdep",
       "path": "/x/node_modules/metapeerdep",
-      "peer": true,
       "version": "1.2.3",
     },
     "optional" => ArboristNode {
@@ -243,7 +242,6 @@ ArboristNode {
       "location": "node_modules/peerdep",
       "name": "peerdep",
       "path": "/x/node_modules/peerdep",
-      "peer": true,
       "version": "1.2.3",
     },
     "prod" => ArboristNode {
@@ -403,7 +401,6 @@ ArboristNode {
       "location": "node_modules/foo",
       "name": "foo",
       "path": "/some/path/node_modules/foo",
-      "peer": true,
       "version": "1.2.3",
     },
   },
@@ -420,7 +417,182 @@ ArboristNode {
   "location": "",
   "name": "path",
   "path": "/some/path",
+}
+`
+
+exports[`test/calc-dep-flags.js TAP peer dependency with optional dependency > after calcDepFlags 1`] = `
+ArboristNode {
+  "children": Map {
+    "B" => ArboristNode {
+      "edgesIn": Set {
+        EdgeIn {
+          "from": "",
+          "name": "B",
+          "spec": "1.0.0",
+          "type": "prod",
+        },
+      },
+      "edgesOut": Map {
+        "C" => EdgeOut {
+          "name": "C",
+          "spec": "1.0.0",
+          "to": "node_modules/C",
+          "type": "peer",
+        },
+      },
+      "location": "node_modules/B",
+      "name": "B",
+      "path": "/project/node_modules/B",
+      "version": "1.0.0",
+    },
+    "C" => ArboristNode {
+      "edgesIn": Set {
+        EdgeIn {
+          "from": "node_modules/B",
+          "name": "C",
+          "spec": "1.0.0",
+          "type": "peer",
+        },
+      },
+      "edgesOut": Map {
+        "D" => EdgeOut {
+          "name": "D",
+          "spec": "1.0.0",
+          "to": "node_modules/D",
+          "type": "optional",
+        },
+      },
+      "location": "node_modules/C",
+      "name": "C",
+      "path": "/project/node_modules/C",
+      "peer": true,
+      "version": "1.0.0",
+    },
+    "D" => ArboristNode {
+      "edgesIn": Set {
+        EdgeIn {
+          "from": "node_modules/C",
+          "name": "D",
+          "spec": "1.0.0",
+          "type": "optional",
+        },
+      },
+      "location": "node_modules/D",
+      "name": "D",
+      "optional": true,
+      "path": "/project/node_modules/D",
+      "version": "1.0.0",
+    },
+  },
+  "edgesOut": Map {
+    "B" => EdgeOut {
+      "name": "B",
+      "spec": "1.0.0",
+      "to": "node_modules/B",
+      "type": "prod",
+    },
+  },
+  "isProjectRoot": true,
+  "location": "",
+  "name": "project",
+  "packageName": "A",
+  "path": "/project",
+  "version": "1.0.0",
+}
+`
+
+exports[`test/calc-dep-flags.js TAP peer dependency with optional dependency > before calcDepFlags 1`] = `
+ArboristNode {
+  "children": Map {
+    "B" => ArboristNode {
+      "dev": true,
+      "edgesIn": Set {
+        EdgeIn {
+          "from": "",
+          "name": "B",
+          "spec": "1.0.0",
+          "type": "prod",
+        },
+      },
+      "edgesOut": Map {
+        "C" => EdgeOut {
+          "name": "C",
+          "spec": "1.0.0",
+          "to": "node_modules/C",
+          "type": "peer",
+        },
+      },
+      "extraneous": true,
+      "location": "node_modules/B",
+      "name": "B",
+      "optional": true,
+      "path": "/project/node_modules/B",
+      "peer": true,
+      "version": "1.0.0",
+    },
+    "C" => ArboristNode {
+      "dev": true,
+      "edgesIn": Set {
+        EdgeIn {
+          "from": "node_modules/B",
+          "name": "C",
+          "spec": "1.0.0",
+          "type": "peer",
+        },
+      },
+      "edgesOut": Map {
+        "D" => EdgeOut {
+          "name": "D",
+          "spec": "1.0.0",
+          "to": "node_modules/D",
+          "type": "optional",
+        },
+      },
+      "extraneous": true,
+      "location": "node_modules/C",
+      "name": "C",
+      "optional": true,
+      "path": "/project/node_modules/C",
+      "peer": true,
+      "version": "1.0.0",
+    },
+    "D" => ArboristNode {
+      "dev": true,
+      "edgesIn": Set {
+        EdgeIn {
+          "from": "node_modules/C",
+          "name": "D",
+          "spec": "1.0.0",
+          "type": "optional",
+        },
+      },
+      "extraneous": true,
+      "location": "node_modules/D",
+      "name": "D",
+      "optional": true,
+      "path": "/project/node_modules/D",
+      "peer": true,
+      "version": "1.0.0",
+    },
+  },
+  "dev": true,
+  "edgesOut": Map {
+    "B" => EdgeOut {
+      "name": "B",
+      "spec": "1.0.0",
+      "to": "node_modules/B",
+      "type": "prod",
+    },
+  },
+  "extraneous": true,
+  "isProjectRoot": true,
+  "location": "",
+  "name": "project",
+  "optional": true,
+  "packageName": "A",
+  "path": "/project",
   "peer": true,
+  "version": "1.0.0",
 }
 `
 
